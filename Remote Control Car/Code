@@ -1,0 +1,482 @@
+//WHEEL 1 LEFT WHEEL
+const int w11 = 9 ;
+const int w12 = 8 ;
+//WHEEL 2 RIGHT WHEEL
+const int w21 =13;
+const int w22= 12;
+//INPUT FROM RECEIVER
+#define  a1  A5
+#define  b1  A4
+#define  c1  A3
+#define  d1  A2
+//DUPLICATE VALUES
+int da=0,db=0,dc=0,dd=0;
+//SETTING SPEED
+const int pwm1= 11;
+const int pwm2= 10;
+//SENSOR MOVEMENT
+const int trig=7;
+const int echo=6;
+long duration,cm,x1=0,x2=0,x3=0,x4=0,x5=0;
+
+
+//HORN
+const int hrn=3;
+
+//W1 IS THE LEFT WHEEL
+//W2 IS THE RIGHT WHEEL
+
+//For providing logic to L298 IC to choose the direction of the DC motor 
+
+void setup()
+{
+pinMode(w11,OUTPUT) ;  //Logic pins are also set as output
+pinMode(w12,OUTPUT) ;
+pinMode(w21,OUTPUT) ;
+pinMode(w22,OUTPUT) ;
+pinMode(a1,INPUT) ;
+pinMode(b1,INPUT) ;
+pinMode(c1,INPUT) ;
+pinMode(d1,INPUT) ;
+pinMode(pwm1,OUTPUT) ;
+pinMode(pwm2,OUTPUT) ;
+pinMode(hrn,OUTPUT);
+Serial.begin(9600);
+pinMode(trig,OUTPUT);
+pinMode(echo,INPUT);
+}
+
+void loop()
+{
+
+  //CODE DEPENDING ON SENSOR INPUT
+ digitalWrite(trig, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trig, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trig, LOW);
+  
+  pinMode(echo, INPUT);
+  duration = pulseIn(echo, HIGH);
+  x5=((duration*2)/29);
+  
+  x1=x2;
+  x2=x3;
+  x3=x4;
+  x4=x5;
+  cm=(x1+x2+x3+x4+x5)/5;
+  
+//a1=1;b1=1;c1=1;d1=0;
+int a=analogRead(a1);
+int b=analogRead(b1);
+int c=analogRead(c1);
+int d=analogRead(d1);
+
+Serial.println(cm);
+Serial.print("     ");
+Serial.print(a);
+Serial.print("     ");
+Serial.print(b);
+Serial.print("     ");
+Serial.print(c);
+Serial.print("     ");
+Serial.print(d);
+Serial.println("     ");
+
+if(a<700)
+  a=0;
+else
+  a=1;
+
+  if(b<700)
+  b=0;
+else
+  b=1;
+
+  if(c<700)
+  c=0;
+else
+  c=1;
+
+  if(d<700)
+  d=0;
+else
+  d=1;
+
+  Serial.print("     ");
+Serial.print(a);
+Serial.print("     ");
+Serial.print(b);
+Serial.print("     ");
+Serial.print(c);
+Serial.print("     ");
+Serial.print(d);
+Serial.println("     ");
+//analogWrite(hrn,50);
+
+//a=1,b=0,c=1,d=0;
+  /*digitalWrite(w11,LOW);
+  digitalWrite(w12,HIGH);
+  analogWrite(pwm1,255);
+  digitalWrite(w21,LOW);
+  digitalWrite(w22,HIGH);
+//  analogWrite(pwm2,255);*/
+  if(cm<100)
+  {
+    if((a==0)&&(b==0))
+  {
+    if((c==0)&&(d==0))
+    {
+      digitalWrite(w11,HIGH);
+    digitalWrite(w12,HIGH);
+    //analogWrite(pwm1,210);
+    digitalWrite(w21,HIGH);
+    digitalWrite(w22,HIGH);
+    //analogWrite(pwm2,210);
+    }
+    else if((c==1)&&(d==0))
+    {
+     digitalWrite(w11,HIGH);
+    digitalWrite(w12,HIGH);
+    //analogWrite(pwm1,210);
+    digitalWrite(w21,HIGH);
+    digitalWrite(w22,LOW);
+    analogWrite(pwm2,140);
+    }
+    else if((c==1)&&(d==1))
+    {
+      digitalWrite(w11,HIGH);
+    digitalWrite(w12,LOW);
+    analogWrite(pwm1,140);
+    digitalWrite(w21,HIGH);
+    digitalWrite(w22,LOW);
+    analogWrite(pwm2,140);
+    }
+    else if((c==0)&&(d==1))
+    {
+      digitalWrite(w11,HIGH);
+    digitalWrite(w12,LOW);
+    analogWrite(pwm1,140);
+    digitalWrite(w21,HIGH);
+    digitalWrite(w22,HIGH);
+    //analogWrite(pwm2,210);
+    }
+  }
+  else{
+  digitalWrite(w11,HIGH);
+  digitalWrite(w12,HIGH);
+  digitalWrite(w21,HIGH);
+  digitalWrite(w22,HIGH);
+  }
+  }
+  //HORN
+  else
+  if((a==1)&&(b==1)&&(c==1)&&(d==1))
+  {
+    analogWrite(hrn,50);  
+   if((da==1)&&(db==1))
+    {
+    if(dc==1)
+    {
+    digitalWrite(w11,LOW);
+    digitalWrite(w12,HIGH);
+    analogWrite(pwm1,255);
+    digitalWrite(w21,LOW);
+    digitalWrite(w22,HIGH);
+    analogWrite(pwm2,255);
+    }
+    else if(dd==1)
+    {
+    digitalWrite(w11,LOW);
+    digitalWrite(w12,HIGH);
+    analogWrite(pwm1,200);
+    digitalWrite(w21,LOW);
+    digitalWrite(w22,HIGH);
+    analogWrite(pwm2,200);
+    }
+    else if(dd==0)
+    {
+    digitalWrite(w11,LOW);
+    digitalWrite(w12,HIGH);
+    analogWrite(pwm1,140);
+    digitalWrite(w21,LOW);
+    digitalWrite(w22,HIGH);
+    analogWrite(pwm2,140);
+    }
+  }
+  else if((da==0)&&(db==1))
+  {
+    if((dc==1)&&(dd==1))
+    {
+    digitalWrite(w11,LOW);
+    digitalWrite(w12,HIGH);
+    analogWrite(pwm1,200);
+    digitalWrite(w21,LOW);
+    digitalWrite(w22,HIGH);
+    analogWrite(pwm2,255);
+    }
+    else if((dc==1)&&(dd==0))
+    {
+    digitalWrite(w11,LOW);
+    digitalWrite(w12,HIGH);
+    analogWrite(pwm1,140);
+    digitalWrite(w21,LOW);
+    digitalWrite(w22,HIGH);
+    analogWrite(pwm2,200);
+    }
+    else if((dc==0)&&(dd==1))
+    {
+      digitalWrite(w11,HIGH);
+    digitalWrite(w12,HIGH);
+    //analogWrite(pwm1,200);
+    digitalWrite(w21,LOW);
+    digitalWrite(w22,HIGH);
+    analogWrite(pwm2,140);
+    }
+    else if((dc==0)&&(dd==0))
+    {
+    digitalWrite(w11,HIGH);
+    digitalWrite(w12,LOW);
+    analogWrite(pwm1,140);
+    digitalWrite(w21,LOW);
+    digitalWrite(w22,HIGH);
+    analogWrite(pwm2,140);
+    }
+  }
+  else if((da==0)&&(db==0))
+  {
+    if((dc==0)&&(dd==0))
+    {
+      digitalWrite(w11,HIGH);
+    digitalWrite(w12,HIGH);
+    //analogWrite(pwm1,210);
+    digitalWrite(w21,HIGH);
+    digitalWrite(w22,HIGH);
+    //analogWrite(pwm2,210);
+    }
+    else if((dc==0)&&(dd==1))
+    {
+     digitalWrite(w11,HIGH);
+    digitalWrite(w12,HIGH);
+    //analogWrite(pwm1,210);
+    digitalWrite(w21,HIGH);
+    digitalWrite(w22,LOW);
+    analogWrite(pwm2,140);
+    }
+    else if((dc==1)&&(dd==1))
+    {
+      digitalWrite(w11,HIGH);
+    digitalWrite(w12,LOW);
+    analogWrite(pwm1,140);
+    digitalWrite(w21,HIGH);
+    digitalWrite(w22,LOW);
+    analogWrite(pwm2,140);
+    }
+    else if((dc==1)&&(dd==0))
+    {
+      digitalWrite(w11,HIGH);
+    digitalWrite(w12,LOW);
+    analogWrite(pwm1,140);
+    digitalWrite(w21,HIGH);
+    digitalWrite(w22,HIGH);
+    //analogWrite(pwm2,210);
+    }
+  }
+  else if((da==1)&&(db==0))
+  {
+    if((dc==1)&&(dd==1))
+    {
+      digitalWrite(w11,LOW);
+    digitalWrite(w12,HIGH);
+    analogWrite(pwm1,255);
+    digitalWrite(w21,LOW);
+    digitalWrite(w22,HIGH);
+    analogWrite(pwm2,200);
+    }
+    else if((dc==1)&&(dd==0))
+    {
+      digitalWrite(w11,LOW);
+    digitalWrite(w12,HIGH);
+    analogWrite(pwm1,200);
+    digitalWrite(w21,LOW);
+    digitalWrite(w22,HIGH);
+    analogWrite(pwm2,140);
+    }
+    else if((dc==0)&&(dd==1))
+    {
+      digitalWrite(w11,LOW);
+    digitalWrite(w12,HIGH);
+    analogWrite(pwm1,140);
+    digitalWrite(w21,HIGH);
+    digitalWrite(w22,HIGH);
+   // analogWrite(pwm2,200);
+    }
+    else
+    {
+      digitalWrite(w11,LOW);
+    digitalWrite(w12,HIGH);
+    analogWrite(pwm1,140);
+    digitalWrite(w21,HIGH);
+    digitalWrite(w22,LOW);
+    analogWrite(pwm2,140);
+    }
+  }
+  }
+  //NO HORN
+  else 
+  {
+    analogWrite(hrn,0);
+    if((a==1)&&(b==1))
+    {
+    if(c==1)
+    {
+    digitalWrite(w11,LOW);
+    digitalWrite(w12,HIGH);
+    analogWrite(pwm1,255);
+    digitalWrite(w21,LOW);
+    digitalWrite(w22,HIGH);
+    analogWrite(pwm2,255);
+    }
+    else if(d==1)
+    {
+    digitalWrite(w11,LOW);
+    digitalWrite(w12,HIGH);
+    analogWrite(pwm1,200);
+    digitalWrite(w21,LOW);
+    digitalWrite(w22,HIGH);
+    analogWrite(pwm2,200);
+    }
+    else if(d==0)
+    {
+    digitalWrite(w11,LOW);
+    digitalWrite(w12,HIGH);
+    analogWrite(pwm1,140);
+    digitalWrite(w21,LOW);
+    digitalWrite(w22,HIGH);
+    analogWrite(pwm2,140);
+    }
+  }
+  else if((a==0)&&(b==1))
+  {
+    if((c==1)&&(d==1))
+    {
+    digitalWrite(w11,LOW);
+    digitalWrite(w12,HIGH);
+    analogWrite(pwm1,200);
+    digitalWrite(w21,LOW);
+    digitalWrite(w22,HIGH);
+    analogWrite(pwm2,255);
+    }
+    else if((c==1)&&(d==0))
+    {
+    digitalWrite(w11,LOW);
+    digitalWrite(w12,HIGH);
+    analogWrite(pwm1,140);
+    digitalWrite(w21,LOW);
+    digitalWrite(w22,HIGH);
+    analogWrite(pwm2,200);
+    }
+    else if((c==0)&&(d==1))
+    {
+      digitalWrite(w11,HIGH);
+    digitalWrite(w12,HIGH);
+    //analogWrite(pwm1,200);
+    digitalWrite(w21,LOW);
+    digitalWrite(w22,HIGH);
+    analogWrite(pwm2,140);
+    }
+    else if((c==0)&&(d==0))
+    {
+    digitalWrite(w11,HIGH);
+    digitalWrite(w12,LOW);
+    analogWrite(pwm1,140);
+    digitalWrite(w21,LOW);
+    digitalWrite(w22,HIGH);
+    analogWrite(pwm2,140);
+    }
+  }
+  else if((a==0)&&(b==0))
+  {
+    if((c==0)&&(d==0))
+    {
+      digitalWrite(w11,HIGH);
+    digitalWrite(w12,HIGH);
+    //analogWrite(pwm1,210);
+    digitalWrite(w21,HIGH);
+    digitalWrite(w22,HIGH);
+    //analogWrite(pwm2,210);
+    }
+    else if((c==0)&&(d==1))
+    {
+     digitalWrite(w11,HIGH);
+    digitalWrite(w12,HIGH);
+    //analogWrite(pwm1,210);
+    digitalWrite(w21,HIGH);
+    digitalWrite(w22,LOW);
+    analogWrite(pwm2,140);
+    }
+    else if((c==1)&&(d==1))
+    {
+      digitalWrite(w11,HIGH);
+    digitalWrite(w12,LOW);
+    analogWrite(pwm1,140);
+    digitalWrite(w21,HIGH);
+    digitalWrite(w22,LOW);
+    analogWrite(pwm2,140);
+    }
+    else if((c==1)&&(d==0))
+    {
+      digitalWrite(w11,HIGH);
+    digitalWrite(w12,LOW);
+    analogWrite(pwm1,140);
+    digitalWrite(w21,HIGH);
+    digitalWrite(w22,HIGH);
+    //analogWrite(pwm2,210);
+    }
+  }
+  else if((a==1)&&(b==0))
+  {
+    if((c==1)&&(d==1))
+    {
+      digitalWrite(w11,LOW);
+    digitalWrite(w12,HIGH);
+    analogWrite(pwm1,255);
+    digitalWrite(w21,LOW);
+    digitalWrite(w22,HIGH);
+    analogWrite(pwm2,200);
+    }
+    else if((c==1)&&(d==0))
+    {
+      digitalWrite(w11,LOW);
+    digitalWrite(w12,HIGH);
+    analogWrite(pwm1,200);
+    digitalWrite(w21,LOW);
+    digitalWrite(w22,HIGH);
+    analogWrite(pwm2,140);
+    }
+    else if((c==0)&&(d==1))
+    {
+      digitalWrite(w11,LOW);
+    digitalWrite(w12,HIGH);
+    analogWrite(pwm1,140);
+    digitalWrite(w21,HIGH);
+    digitalWrite(w22,HIGH);
+   // analogWrite(pwm2,200);
+    }
+    else
+    {
+      digitalWrite(w11,LOW);
+    digitalWrite(w12,HIGH);
+    analogWrite(pwm1,140);
+    digitalWrite(w21,HIGH);
+    digitalWrite(w22,LOW);
+    analogWrite(pwm2,140);
+    }
+  }
+  da=a;
+  db=b;
+  dc=c;
+  dd=d;
+  }
+  
+}
