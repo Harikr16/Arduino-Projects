@@ -1,0 +1,348 @@
+#include<Servo.h>
+#include <LiquidCrystal.h>
+
+// initialize the library with the numbers of the interface pins
+LiquidCrystal lcd(2,3,4,8,12,13);
+Servo myservo1,myservo2;
+int vr=255;
+int vb=255;
+int vg=255;
+int r,g,b;
+int flag=0;
+char color;
+
+int valb,valr,valg;
+void setup() {
+    Serial.begin(9600);
+    myservo1.attach(5);
+    myservo1.write(20);
+    delay(2000);
+    myservo1.detach();
+    pinMode(7,OUTPUT);
+    lcd.begin(16, 2);
+    
+   Serial.println("Enter A for Auto caliberation OR M for Manual calibertion : ");
+   while(true)
+    {
+        if(Serial.available()>0)
+       {
+          char c=Serial.read();
+          if(c=='A')
+          {
+            Autocalib();
+            break;
+          }
+           else if(c=='M')
+          {
+            Manualcalib();
+            break;
+          }
+          else
+           Serial.println("Enter A or M");
+        }
+      
+      }
+    Serial.println("\n \n The device is caliberated");
+    char pickup,drop;
+    Serial.println("Enter the pickup location(Color- 'r'/'g'/'b') : ");
+    while(true)
+    {
+       if(Serial.available()>0)
+       {
+          pickup=Serial.read();
+          if((pickup=='r')||(pickup=='g')||(pickup=='b'))
+          {
+            break;
+          }
+          else
+           Serial.println("Enter 'r' / 'g' / 'b' ");
+        }
+    }
+    Serial.println("Enter drop location(Color- 'r'/'g'/'b') : ");
+    while(true)
+    {
+       if(Serial.available()>0)
+       {
+          drop=Serial.read();
+          if((drop=='r')||(drop=='g')||(drop=='b'))
+          {
+            break;
+          }
+          else
+           Serial.println("Enter 'r' / 'g' / 'b' ");
+        }
+    }
+   Serial.println("Searching for pickup location...");
+   if(identify(pickup)==1)
+   {
+      Serial.println("Pickup location found..");
+      pick();
+    }
+    else
+    {
+      Serial.println("Pickup location not found \n Exiting !!!!!");
+      exit;
+    }
+    if(identify(drop)==1)
+    {
+      Serial.println("Dropping location found...");
+      dropit();
+    }
+    else
+    {
+      Serial.println("Dropping location not found \n Exiting !!!!!");
+      exit;
+    }
+}
+/**** End of SETUP ****/
+
+void Manualcalib()
+{
+  while(true)
+  {  
+    analogWrite(9,vg);
+    delay(100);
+    g=analogRead(A2);
+    analogWrite(9,0);  
+    analogWrite(10,vb);
+    delay(100);
+    b=analogRead(A2);
+    analogWrite(10,0);
+    analogWrite(11,vr);
+    delay(100);
+    r=analogRead(A2);
+    analogWrite(11,0);  
+    Serial.println("Red " + (String)r + " Green " + (String)g + "  Blue = " + (String)b);
+    lcd.clear();
+    lcd.print("R" + (String)r + " G" + (String)g + " B" + (String)b);
+    delay (2000);
+    if((g<=r+10)&&(g>=r-10)&&(b<=r+10)&&(b>=r-10))
+    {
+      Serial.println("Manual Caliberation is done. ");
+      break;
+    }
+  }
+}
+
+
+
+void Autocalib()
+{
+
+  Serial.println("Auto Caliberating ... ");
+  analogWrite(9,255);
+  delay(100);
+  g=analogRead(A2);
+  analogWrite(9,0);
+  delay(100);  
+  analogWrite(10,255);
+  delay(100);
+  b=analogRead(A2);
+  analogWrite(10,0);
+  delay(100);
+  analogWrite(11,255);
+  delay(100);
+  r=analogRead(A2);
+  analogWrite(11,0);  
+
+  int  max1=0;
+  if(r<g)
+    max1=g;
+    else
+      max1=r;
+
+   if(max1<b)
+     max1=b;
+
+   Serial.println(max1);
+   
+  analogWrite(11,255);
+  delay(100);
+  //RED  
+  valr=analogRead(A2);
+  for(vr=255;(valr<(max1-10))&&(vr>0);vr-=0.1)
+  {
+    analogWrite(11,vr);
+    delay(100);
+    valr=analogRead(A2);
+  }
+  analogWrite(11,0);
+  delay(100);
+
+  //GREEN
+  analogWrite(10,255);
+  delay(100);
+  valg=analogRead(A2);
+  for(vg=255;(valg<(max1-10))&&(vg>0);vg-=0.1)
+  {
+    analogWrite(10,vg);
+    delay(100);
+    valg=analogRead(A2);
+  }
+  analogWrite(10,0);
+  delay(100);
+
+  //BLUE
+  analogWrite(9,255);
+  delay(100);
+  valb=analogRead(A2);
+  for(vb=255;(valb<(max1-10))&&(vb>0);vb-=0.1)
+  {
+    analogWrite(9,vb);
+    delay(100);
+    valb=analogRead(A2);
+  }
+  analogWrite(9,0);
+  delay(100);
+  lcd.clear();
+  lcd.print("R" + (String)r + " G" + (String)g + " B" + (String)b);
+  lcd.setCursor(1,1);
+  lcd.print("R" + (String)valr+ " G" + (String)valg + " B" + (String)b);
+  valr+=0.1;
+  valg+=0.1;
+  valb+=0.1;  
+}
+
+
+
+int identify(char a)
+{
+  int pos;
+  myservo1.attach(5);
+  myservo1.write(30);
+  delay(2000);
+  myservo1.detach();
+  for(pos=30;pos<180;pos=pos+2)
+  {
+    myservo1.attach(5);
+    myservo1.write(pos);
+    delay(600);
+    myservo1.detach();
+    color=identification();    
+   if(color==a)
+     {
+       flag=1;
+       break;
+     }     
+  }
+  if(flag==1)
+    return 1;
+  else
+    return 0;  
+}
+char identification()
+{
+  analogWrite(9,vg);
+  delay(200);
+  g=analogRead(A2);
+  analogWrite(9,0);
+  delay(100);  
+  analogWrite(10,vb);
+  delay(200);
+  b=analogRead(A2);
+  analogWrite(10,0);
+  delay(100);
+  analogWrite(11,vr);
+  delay(200);
+  r=analogRead(A2);
+  analogWrite(11,0);  
+  delay(100);
+  int mini;
+  if(g<r)
+    mini=g;
+  else
+    mini=r;
+  if(mini>b)
+    mini=b;
+
+    
+  if((mini==g)&&(mini<(r+b)/2 - 100))
+    {
+     return 'g';
+    }
+  if((mini==r)&&(mini<(g+b)/2 - 100))
+    {
+     return 'r';
+    }
+  if((mini==b)&&(mini<(r+g)/2 - 100))
+    {
+     return 'b';  
+    }
+  return 'w';          
+}
+
+
+
+void pick()
+{
+  int val = analogRead(A1); 
+  int flag1=0;
+  myservo2.attach(6);
+  myservo2.write(65);
+  delay(2000);
+  myservo2.detach();
+  for(int pos=65;pos<155;pos++)
+  {
+    myservo2.attach(6);
+    myservo2.write(pos);
+    delay(300);
+    myservo2.detach(); 
+    val = analogRead(A1);
+    if(val>1020)
+      {
+        flag1=1;
+        Serial.println("Object detected !!");
+        activateem();
+        delay(4000);
+        myservo2.attach(6);
+        myservo2.write(65);
+        delay(3000);
+        myservo2.detach();         
+        break;        
+      }
+  }
+  if(flag1==0)
+  {
+    Serial.println("Object not detected!!!");
+    pick();
+  }    
+}
+
+
+void dropit()
+{
+  int val = analogRead(A1); 
+  int flag1=0;
+  myservo2.attach(6);
+  myservo2.write(155);
+  delay(2000);
+  myservo2.detach();
+  deactivateem();
+  delay(4000);
+  myservo2.attach(6);
+  myservo2.write(65);
+  delay(2000);
+  myservo2.detach();
+  Serial.println("Object dropped " );
+  
+}
+
+
+void activateem()
+{
+   digitalWrite(7,HIGH);
+   delay(1000);
+}
+
+void deactivateem()
+{
+   digitalWrite(7,LOW);
+   delay(1000);
+   myservo1.attach(5);
+   myservo1.write(30);
+   delay(3000);
+   myservo1.detach();
+}
+
+void loop() { 
+}
